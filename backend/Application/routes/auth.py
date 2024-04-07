@@ -60,7 +60,7 @@ def login():
     user = User.objects(username=username).first()
     if user and bcrypt.checkpw(password.encode('utf-8'), user["password"].encode('utf-8')):
         access_token = create_access_token(identity=str(username))
-        return make_response(jsonify({'access_token' : access_token,"message": "Login Successfull","loggedinUser": username}), 200)
+        return make_response(jsonify({'access_token' : access_token,"message": "Login Successfull","loggedinUser": username, "role": user["role"]}), 200)
 
     else:
         return jsonify({'message': 'Invalid credentials'}), 401

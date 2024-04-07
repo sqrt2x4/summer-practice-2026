@@ -1,19 +1,44 @@
-import React, { useState } from 'react';
-import './App.css';
-import {BrowserRouter, Route, Routes} from 'react-router-dom';
-import Login from './Login';
-import Home from './Home';
+import "./App.css";
+import { BrowserRouter, Routes, Route, Outlet } from "react-router-dom";
+import Login from "./pages/Login";
+import Home from "./pages/Home";
+import NavSidebar from "./components/NavSidebar";
+import Dashboard from "./pages/Dashboard";
+import Devices from "./pages/Devices";
+import AddDeviceForm from "./components/AddDeviceForm";
+import ManageUsers from "./pages/ManageUsers";
+import Profile from "./pages/Profile";
+
 function App() {
 
-  return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<Login/>} />
-          <Route path="login" element={<Login/>} />
-          <Route path="home" element={<Home/>} />
-      </Routes>
-    </BrowserRouter>
-  );
+    const SidebarLayout = () => (
+      <div className={`app toggled}`}>
+          <NavSidebar />
+        <div style={{marginLeft: "1rem"}}>
+          <Outlet />
+        </div>
+      </div>
+    );
+
+    return (
+      <BrowserRouter>
+
+          <Routes>
+            <Route element={<SidebarLayout/>}>
+              <Route path="/home" element={<Home/>} />
+              <Route path="/dashboard" element={<Dashboard/>} />
+              <Route path="/devices" element={<Devices/>}/>
+              <Route path="/add-device" element={<AddDeviceForm/>} />
+              <Route path="/profile" element={<Profile/>} />
+              <Route path="/manage-users" element={<ManageUsers/>} />
+
+
+            </Route>
+            <Route path="/" element={<Login />} />
+            <Route path="login" element={<Login />} />
+          </Routes>
+      </BrowserRouter>
+    );
 }
 
 export default App;

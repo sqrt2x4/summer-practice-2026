@@ -1,6 +1,8 @@
 from Application import app
 import configparser
 import pymongo
+from flask import jsonify
+from ..database.models import User
 
 # from backend.Application.routes.auth import token_required
 
@@ -11,6 +13,9 @@ mydb = client.energysaving
 
 
 @app.route('/users', methods=['GET'])
-# @token_required
-def get_user(current_user):
-    pass
+def get_users():
+    try:
+        users = User.objects().to_json()
+        return users, 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
