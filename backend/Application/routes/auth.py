@@ -71,8 +71,11 @@ def register():
     data = request.get_json()
     username = data.get('username')
     password = data.get('password')
+    role = data.get("role")
+    group = data.get("group")
+    site = data.get("site")
     hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
-    user = {"username": username, "password": hashed_password}
+    user = {"username": username, "password": hashed_password, "role": role, "group": group, "site": site}
     action = insert_user(user)
     if 'error' not in action:
         return {"message": "User succesfully added"}
