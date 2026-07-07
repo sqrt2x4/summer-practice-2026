@@ -1,9 +1,6 @@
 import { useState } from 'react';
 import { Button, TextField, Select, MenuItem, FormControl, InputLabel, Grid } from '@mui/material';
-import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-
-axios.defaults.baseURL = '/api';
 
 const AddDeviceForm = () => {
   const [formData, setFormData] = useState({
@@ -32,8 +29,13 @@ const AddDeviceForm = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await axios.post('/device', formData);
-      navigate("/devices");
+      const response = await fetch('/api/device', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData),
+      });
+      if (!response.ok) throw new Error(`Request failed: ${response.status}`);
+      navigate('/devices');
       console.log('Device added successfully');
     } catch (error) {
       console.error('Error adding device:', error);
