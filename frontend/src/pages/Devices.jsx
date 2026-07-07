@@ -15,10 +15,11 @@ import {
     DialogContent,
     DialogActions,
     Button,
+    Container,
 } from "@mui/material";
 import { MoreVert as MoreVertIcon } from "@mui/icons-material";
-import { useNavigate } from "react-router-dom";
 import AddIcon from "@mui/icons-material/Add";
+import AddDeviceForm from "../components/AddDeviceForm";
 
 const DeviceTable = () => {
     const [devices, setDevices] = useState([]);
@@ -26,20 +27,22 @@ const DeviceTable = () => {
     const [selectedDevice, setSelectedDevice] = useState(null);
     const [isScheduleDialogOpen, setIsScheduleDialogOpen] = useState(false);
     const [selectedAction, setSelectedAction] = useState(null);
+    const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+
+    const fetchDevices = async () => {
+        try {
+            const response = await fetch("/devices");
+            if (!response.ok) {
+                throw new Error(`Failed to fetch devices: ${response.status}`);
+            }
+            const data = await response.json();
+            setDevices(data);
+        } catch (error) {
+            console.error("Error fetching devices:", error);
+        }
+    };
 
     useEffect(() => {
-        const fetchDevices = async () => {
-            try {
-                const response = await fetch("/devices");
-                if (!response.ok) {
-                    throw new Error(`Failed to fetch devices: ${response.status}`);
-                }
-                const data = await response.json();
-                setDevices(data);
-            } catch (error) {
-                console.error("Error fetching devices:", error);
-            }
-        };
         fetchDevices();
     }, []);
 
@@ -103,15 +106,23 @@ const DeviceTable = () => {
         }
     };
 
-    const navigate = useNavigate();
+    const handleAddDialogOpen = () => {
+        setIsAddDialogOpen(true);
+    };
+
+    const handleAddDialogClose = () => {
+        setIsAddDialogOpen(false);
+    };
+
+    const handleAddDeviceSuccess = () => {
+        fetchDevices();
+    };
+
     return (
-        <div style={{ overflowX: "auto", width: "80vw" }}>
-            <br />
-            <Button variant="outlined" startIcon={<AddIcon />} onClick={() => navigate("/add-device")}>
+        <Container maxWidth={false} disableGutters>
+            <Button variant="outlined" startIcon={<AddIcon />} onClick={handleAddDialogOpen}>
                 Add Device
             </Button>
-            <br />
-            <br />
             <TableContainer component={Paper}>
                 <Table>
                     <TableHead>
@@ -189,7 +200,12 @@ const DeviceTable = () => {
                     </Button>
                 </DialogActions>
             </Dialog>
-        </div>
+            <AddDeviceForm
+                open={isAddDialogOpen}
+                onClose={handleAddDialogClose}
+                onSuccess={handleAddDeviceSuccess}
+            />
+        </Container>
     );
 };
 
