@@ -1,4 +1,3 @@
-import "../App.css";
 import LibraryAddIcon from "@mui/icons-material/LibraryAdd";
 import EventRepeatIcon from "@mui/icons-material/EventRepeat";
 import EnergySavingsLeafIcon from "@mui/icons-material/EnergySavingsLeaf";

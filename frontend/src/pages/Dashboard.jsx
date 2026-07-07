@@ -1,10 +1,9 @@
-import '../App.css';
 
 function Dashboard() {
 
   return (
     <div>
-    <span>Dashboard</span>
+      <h2>Dashboard</h2>
     </div>
   );
 }
