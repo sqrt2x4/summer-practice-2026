@@ -12,6 +12,7 @@ Welcome to Nokia Summer Practice 2026. This is the project starting point, from 
 
 ### Frontend
 
+- Node.js - Javascript runtime ([download](https://nodejs.org/en/download))
 - React - web framework ([learn](https://react.dev/learn)) ([docs](https://react.dev/reference/react))
 - Vite - bundler and build system ([guide](https://vite.dev/guide/))
 - Material UI - UI/UX framework ([docs](https://mui.com/material-ui/getting-started/))
@@ -23,21 +24,51 @@ Welcome to Nokia Summer Practice 2026. This is the project starting point, from 
 
 ## Get Started
 
+### The Environment
+
+You're encouraged to use the following tools:
+
+- Visual Studio Code ([download](https://code.visualstudio.com/download))
+- Robot Code extension ([for VS Code](https://marketplace.visualstudio.com/items?itemName=d-biehl.robotcode))
+([for Jetbrains IDEs](https://plugins.jetbrains.com/plugin/26216-robotcode--robot-framework-support)) - this helps with running and debugging tests
+- Thunder Client extension for VS Code ([link](https://marketplace.visualstudio.com/items?itemName=rangav.vscode-thunder-client)) - this helps you to test backend endpoints easier
+- Bash or other UNIX type shell (for Windows it's included in the Git package)
+
+These are not mandatory, you can use other tools that you prefer.
+
 ### Prerequisites
 
-- Install Python 3.10 or newer
-- Install Node.js v22 or newer
-- Install Mongo DB Community server
+First, ensure the following are installed on your computer. You only need to do this once.
+
+- Install Git ([download for Windows](https://git-scm.com/install/windows)) <br/>
+If you're on Linux, Git is most likely already installed. For Mac OS, install Xcode Command Line Tools to provide Git as well as other developer tools.
+- Install Python 3.10 or newer ([download](https://www.python.org/downloads/))
+- Install Node.js v22 or newer ([download](https://nodejs.org/en/download))
+- Install Mongo DB Community server ([download](https://www.mongodb.com/try/download/community))
+
+### Clone the repo
+
+Clone this repository using Git into your workspace folder of choice:
+
+```sh
+$ git clone https://github.com/RaduTek/summer-practice-2026
+```
 
 ### Backend
 
-Install dependencies:
+Install backend dependencies (you only need to do this once):
 
 ```sh
 $ cd backend
 $ python -m venv venv
-$ source venv/bin/activate # Windows: venv/Scripts/activate
+$ source venv/bin/activate # if on Windows: venv/Scripts/activate
 $ pip install -r requirements.txt
+```
+
+If you're using PowerShell (the default on Windows), run this:
+
+```ps
+PS C:\summer-practice-2026\backend> .\venv\Scripts\activate.ps1
 ```
 
 Start the backend:
@@ -53,7 +84,7 @@ WARNING: This is a development server. Do not use it in a production deployment.
 
 ### Frontend
 
-Install dependencies:
+Install dependencies (you only need to do this once):
 
 ```sh
 $ npm install
@@ -83,6 +114,8 @@ Install Robot Framework and Browser Library:
 $ pip install robotframework robotframework-browser
 $ rfbrowser init
 ```
+
+This may take a while, as `rfbrowser init` installs a web browser version dedicated to automated testing. You need Node.js installed for this to work.
 
 ### Results
 
