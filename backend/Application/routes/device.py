@@ -1,4 +1,5 @@
 from Application import app
+from mongoengine import ValidationError # type: ignore
 from flask import jsonify, request # type: ignore
 from ..database.models import Device
 
@@ -21,3 +22,18 @@ def add_device():
     except Exception as e:
         print(e)
         return jsonify({'error': str(e)}), 400
+
+@app.route('/device/<device_id>', methods=['DELETE'])
+def delete_device(device_id):
+    try:
+        device = Device.objects(id=device_id).first()
+        if device is None:
+            return jsonify({'error': 'Device not found'}), 404
+
+        device.delete()
+        return jsonify({'message': 'Device deleted successfully'}), 200
+    except ValidationError:
+        return jsonify({'error': 'Invalid device ID'}), 400
+    except Exception as e:
+        print(e)
+        return jsonify({'error': str(e)}), 500
