@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
+
 import {
     MenuItem,
     Dialog,
@@ -22,6 +23,11 @@ const DeviceTable = () => {
     const [isScheduleDialogOpen, setIsScheduleDialogOpen] = useState(false);
     const [selectedAction, setSelectedAction] = useState(null);
     const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+
+    const [isRemoveDialogOpen, setIsRemoveDialogOpen] = useState(false);
+    const [deviceToRemove, setDeviceToRemove] = useState(null);
+    const [isDeleting, setIsDeleting] = useState(false);
+    const [deleteError, setDeleteError] = useState(null);
 
     const fetchDevices = async () => {
         try {
@@ -52,6 +58,42 @@ const DeviceTable = () => {
         setSelectedDevice(null);
     };
 
+    const handleRemoveOpen = (device) => {
+        setDeviceToRemove(device);
+        setIsRemoveDialogOpen(true);
+        setDeleteError(null);
+    }
+
+    const handleRemoveClose = () => {
+        if(isDeleting) return; // Prevent closing the dialog while deleting
+        setIsRemoveDialogOpen(false);
+        setDeviceToRemove(null);
+        setDeleteError(null);
+    }
+
+    const handleRemoveConfirm = async () => {
+        if (!deviceToRemove) return;
+        console.log("Attempting to delete:", deviceToRemove._id); // debugging log
+        setIsDeleting(true);
+        try {
+            const response = await fetch(`api/device/${deviceToRemove._id.$oid}`, {
+                method: "DELETE",
+            });
+            if (!response.ok) {
+                throw new Error(`Failed to delete device: ${response.status}`);
+            }
+            // Refresh the device list after deletion
+            await fetchDevices();
+            setIsRemoveDialogOpen(false);
+            setDeviceToRemove(null);
+        } catch (error) {
+            console.error("Error deleting device:", error);
+            setDeleteError("Failed to delete device.");
+        } finally {
+            setIsDeleting(false);
+        }
+    };
+
     const handleAction = (action, device) => {
         switch (action) {
             case "schedule":
@@ -61,7 +103,7 @@ const DeviceTable = () => {
                 // Handle edit action
                 break;
             case "remove":
-                // Handle remove action
+                handleRemoveOpen(device);
                 break;
             default:
                 break;
@@ -96,8 +138,7 @@ const DeviceTable = () => {
         data: devices,
         enableRowActions: true,
         positionActionsColumn: "last",
-        muiTableContainerProps: {
-        },
+        muiTableContainerProps: {},
         muiTablePaperProps: {
             elevation: 0,
         },
@@ -145,12 +186,6 @@ const DeviceTable = () => {
                     // Perform schedule action with selectedDevice._id
                     console.log(`Scheduled action for device ${selectedDevice._id}`);
                     break;
-                case "edit":
-                    // Perform edit action with selectedDevice._id
-                    break;
-                case "remove":
-                    // Perform remove action with selectedDevice._id
-                    break;
                 default:
                     break;
             }
@@ -176,6 +211,7 @@ const DeviceTable = () => {
         <Container maxWidth={false} disableGutters>
             <PageHeader title="Devices" breadcrumbItems={["Home", "Devices"]} />
             <MaterialReactTable table={table} />
+
             <Dialog open={isScheduleDialogOpen} onClose={handleScheduleClose}>
                 <DialogTitle>Schedule Action</DialogTitle>
                 <DialogContent>
@@ -189,6 +225,31 @@ const DeviceTable = () => {
                     </Button>
                 </DialogActions>
             </Dialog>
+
+            <Dialog open={isRemoveDialogOpen} onClose={handleRemoveClose}>
+                <DialogTitle>Confirm Remove</DialogTitle>
+                <DialogContent>
+                    <Typography>
+                        Are you sure you want to remove the device {deviceToRemove?.deviceName}?
+                    </Typography>
+                    {deleteError && (
+                        <Typography color="error" variant="body2">
+                            {deleteError}
+                        </Typography>
+                    )}
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={handleRemoveClose} disabled={isDeleting}>
+                        Cancel
+                    </Button>
+                    <Button onClick={handleRemoveConfirm}
+                            color="primary"
+                            disabled={isDeleting}>
+                        {isDeleting ? "Removing..." : "Remove"}
+                    </Button>
+                </DialogActions>
+            </Dialog>
+
             <AddDeviceForm
                 open={isAddDialogOpen}
                 onClose={handleAddDialogClose}
