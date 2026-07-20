@@ -1,5 +1,4 @@
 import { useState, useEffect, useMemo } from "react";
-
 import {
     MenuItem,
     Dialog,
@@ -8,22 +7,24 @@ import {
     DialogActions,
     Button,
     Container,
-    Typography,
-    Divider,
-    Box,
+    Typography
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import { MaterialReactTable, useMaterialReactTable } from "material-react-table";
 import AddDeviceForm from "../components/AddDeviceForm";
 import PageHeader from "../components/PageHeader";
+import ScheduleForm from "../components/ScheduleForm";
 
 const DeviceTable = () => {
     const [devices, setDevices] = useState([]);
-    const [selectedDevice, setSelectedDevice] = useState(null);
-    const [isScheduleDialogOpen, setIsScheduleDialogOpen] = useState(false);
-    const [selectedAction, setSelectedAction] = useState(null);
+    //SCHEDULE
+    const [isScheduleFormOpen, setIsScheduleFormOpen] = useState(false);
+    const [deviceToSchedule, setDeviceToSchedule] = useState(null);
+    // ADD
     const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
-
+    const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+    const [deviceToEdit, setDeviceToEdit] = useState(null);
+    //REMOVE
     const [isRemoveDialogOpen, setIsRemoveDialogOpen] = useState(false);
     const [deviceToRemove, setDeviceToRemove] = useState(null);
     const [isDeleting, setIsDeleting] = useState(false);
@@ -46,16 +47,18 @@ const DeviceTable = () => {
         fetchDevices();
     }, []);
 
-    const handleScheduleOpen = (device) => {
-        setSelectedDevice(device);
-        setIsScheduleDialogOpen(true);
-        setSelectedAction("schedule");
+    const handleScheduleFormOpen = (device) => {
+        setDeviceToSchedule(device);
+        setIsScheduleFormOpen(true);
     };
 
-    const handleScheduleClose = () => {
-        setIsScheduleDialogOpen(false);
-        setSelectedAction(null);
-        setSelectedDevice(null);
+    const handleScheduleFormClose = () => {
+        setIsScheduleFormOpen(false);
+        setDeviceToSchedule(null);
+    };
+
+    const handleScheduleSuccess = () => {
+        fetchDevices();
     };
 
     const handleRemoveOpen = (device) => {
@@ -73,7 +76,6 @@ const DeviceTable = () => {
 
     const handleRemoveConfirm = async () => {
         if (!deviceToRemove) return;
-        console.log("Attempting to delete:", deviceToRemove._id); // debugging log
         setIsDeleting(true);
         try {
             const response = await fetch(`api/device/${deviceToRemove._id.$oid}`, {
@@ -94,13 +96,27 @@ const DeviceTable = () => {
         }
     };
 
+    const handleEditOpen = (device) => {
+    setDeviceToEdit(device);
+    setIsEditDialogOpen(true);
+    };
+
+    const handleEditClose = () => {
+        setIsEditDialogOpen(false);
+        setDeviceToEdit(null);
+    };
+
+    const handleEditSuccess = () => {
+        fetchDevices();
+    };
+
     const handleAction = (action, device) => {
         switch (action) {
             case "schedule":
-                handleScheduleOpen(device);
+                handleScheduleFormOpen(device);
                 break;
             case "edit":
-                // Handle edit action
+                handleEditOpen(device);
                 break;
             case "remove":
                 handleRemoveOpen(device);
@@ -178,23 +194,6 @@ const DeviceTable = () => {
         ],
     });
 
-    const handlePerformAction = async () => {
-        if (!selectedDevice) return;
-        try {
-            switch (selectedAction) {
-                case "schedule":
-                    // Perform schedule action with selectedDevice._id
-                    console.log(`Scheduled action for device ${selectedDevice._id}`);
-                    break;
-                default:
-                    break;
-            }
-            handleScheduleClose();
-        } catch (error) {
-            console.error("Error performing action:", error);
-        }
-    };
-
     const handleAddDialogOpen = () => {
         setIsAddDialogOpen(true);
     };
@@ -211,20 +210,6 @@ const DeviceTable = () => {
         <Container maxWidth={false} disableGutters>
             <PageHeader title="Devices" breadcrumbItems={["Home", "Devices"]} />
             <MaterialReactTable table={table} />
-
-            <Dialog open={isScheduleDialogOpen} onClose={handleScheduleClose}>
-                <DialogTitle>Schedule Action</DialogTitle>
-                <DialogContent>
-                    {/* Add content for scheduling here */}
-                    Schedule dialog content...
-                </DialogContent>
-                <DialogActions>
-                    <Button onClick={handleScheduleClose}>Cancel</Button>
-                    <Button onClick={handlePerformAction} color="primary">
-                        Schedule
-                    </Button>
-                </DialogActions>
-            </Dialog>
 
             <Dialog open={isRemoveDialogOpen} onClose={handleRemoveClose}>
                 <DialogTitle>Confirm Remove</DialogTitle>
@@ -255,6 +240,20 @@ const DeviceTable = () => {
                 onClose={handleAddDialogClose}
                 onSuccess={handleAddDeviceSuccess}
             />
+
+            <AddDeviceForm
+                open={isEditDialogOpen}
+                onClose={handleEditClose}
+                onSuccess={handleEditSuccess}
+                device={deviceToEdit}
+            />
+
+            <ScheduleForm
+            open={isScheduleFormOpen}
+            onClose={handleScheduleFormClose}
+            onSuccess={handleScheduleSuccess}
+            device={deviceToSchedule}
+        />
         </Container>
     );
 };

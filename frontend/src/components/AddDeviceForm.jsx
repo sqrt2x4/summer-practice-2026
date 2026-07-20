@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import PropTypes from "prop-types";
 import {
     Alert,
@@ -35,10 +35,24 @@ const initialFormData = {
 /**
  * @param {{ open: boolean, onClose: () => void, onSuccess?: (createdDevice: unknown) => void }} props
  */
-const AddDeviceForm = ({ open, onClose, onSuccess }) => {
+const AddDeviceForm = ({ open, onClose, onSuccess, device }) => {
+    const isEditMode = Boolean(device);
+
     const [formData, setFormData] = useState({
         ...initialFormData,
     });
+
+    useEffect(() => {
+        if (open && device) {
+            setFormData({
+                ...initialFormData,
+                ...device,
+            });
+        } else if (open && !device) {
+            setFormData({ ...initialFormData });
+        }
+    }, [open, device]);
+
     const [error, setError] = useState("");
     const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -62,11 +76,17 @@ const AddDeviceForm = ({ open, onClose, onSuccess }) => {
         setIsSubmitting(true);
         setError("");
 
-        try {
-            const response = await fetch("/api/device", {
-                method: "POST",
+         try {
+            const url = isEditMode
+                ? `/api/device/${device._id.$oid}`
+                : "/api/device";
+            const method = isEditMode ? "PUT" : "POST";
+
+            const {...payload } = formData;
+            const response = await fetch(url, {
+                method,
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(formData),
+                body: JSON.stringify(payload),
             });
 
             if (!response.ok) {
@@ -87,9 +107,9 @@ const AddDeviceForm = ({ open, onClose, onSuccess }) => {
             onClose();
         } catch (error) {
             if (error instanceof Error) {
-                setError(error.message || "Failed to add device.");
+                setError(error.message || `Failed to ${isEditMode ? "update" : "add"} device.`);
             } else {
-                setError("Failed to add device.");
+                setError(`Failed to ${isEditMode ? "update" : "add"} device.`);
             }
         } finally {
             setIsSubmitting(false);
@@ -101,7 +121,7 @@ const AddDeviceForm = ({ open, onClose, onSuccess }) => {
             open={open}
             onClose={handleDialogClose}
         >
-            <DialogTitle>Add Device</DialogTitle>
+            <DialogTitle>{isEditMode ? "Edit Device" : "Add Device"}</DialogTitle>
             <DialogContent dividers>
                 {error && <Alert severity="error">{error}</Alert>}
                 <Stack component="form" id="add-device-form" onSubmit={handleSubmit} direction="row" spacing={2}>
@@ -188,7 +208,7 @@ const AddDeviceForm = ({ open, onClose, onSuccess }) => {
                             fullWidth
                             required
                         />
-                        
+
                         <FormControl fullWidth required>
                             <InputLabel id="connectivity-type-label">Connectivity Type</InputLabel>
                             <Select
@@ -255,7 +275,7 @@ const AddDeviceForm = ({ open, onClose, onSuccess }) => {
                     Cancel
                 </Button>
                 <Button type="submit" form="add-device-form" variant="contained" disabled={isSubmitting}>
-                    {isSubmitting ? "Submitting..." : "Submit"}
+                    {isSubmitting ? "Submitting..." : isEditMode ? "Save Changes" : "Submit"}
                 </Button>
             </DialogActions>
         </DockedDialog>
@@ -266,6 +286,7 @@ AddDeviceForm.propTypes = {
     open: PropTypes.bool.isRequired,
     onClose: PropTypes.func.isRequired,
     onSuccess: PropTypes.func,
+    device: PropTypes.object,
 };
 
 export default AddDeviceForm;

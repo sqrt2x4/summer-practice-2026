@@ -23,6 +23,25 @@ def add_device():
         print(e)
         return jsonify({'error': str(e)}), 400
 
+@app.route('/device/<device_id>', methods=['PUT'])
+def update_device(device_id):
+    try:
+        device = Device.objects(id=device_id).first()
+        if device is None:
+            return jsonify({'error': 'Device not found'}), 404
+
+        device_data = request.get_json()
+        device_data.pop('_id', None)  # never allow _id to be reassigned
+        device.update(**device_data)
+        device.reload()
+
+        return jsonify({'message': 'Device updated successfully'}), 200
+    except ValidationError:
+        return jsonify({'error': 'Invalid device ID'}), 400
+    except Exception as e:
+        print(e)
+        return jsonify({'error': str(e)}), 400
+
 @app.route('/device/<device_id>', methods=['DELETE'])
 def delete_device(device_id):
     try:

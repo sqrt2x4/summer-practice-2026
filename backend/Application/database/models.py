@@ -1,5 +1,5 @@
-from bson.objectid import ObjectId
-from mongoengine import *
+from bson.objectid import ObjectId # type: ignore
+from mongoengine import * # type: ignore
 
 class User(Document):
     name = StringField(required=True)
@@ -28,7 +28,8 @@ class Device(Document):
     powerOffTime = StringField(required=False)  # format: "HH:MM"
     count = IntField(required=False, default=1)  # câte dispozitive de acest tip
     consumptionPerHour = FloatField(required=False)  # kWh per hour
-    
+    midCycle = BooleanField(default=False)  # True while device is powered off mid-schedule
+
 
 class DailySaving(EmbeddedDocument):
     subId = ObjectIdField(required=True, default=lambda: ObjectId())
@@ -39,3 +40,10 @@ class DailySaving(EmbeddedDocument):
 class Saving(Document):
     deviceName = StringField(required=True, unique=True)
     log = EmbeddedDocumentListField(DailySaving)
+
+class Schedule(Document):
+    device = ReferenceField(Device, required=True, unique=True)
+    startDate = StringField(required=True)       # "2026-07-14" — matches your mockup's "Start date"
+    powerOnTime = StringField(required=True)      # "HH:MM"
+    powerOffTime = StringField(required=True)     # "HH:MM"
+    recurrence = StringField(required=True, choices=['workdays', 'weekends', 'everyday'])
