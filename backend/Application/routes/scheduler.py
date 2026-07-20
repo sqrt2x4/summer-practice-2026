@@ -13,15 +13,17 @@ def get_schedule(device_id):
 
         schedule = Schedule.objects(device=device).first()
         if schedule is None:
-            return jsonify(None), 200  # no schedule yet — not an error
+            return jsonify(None), 200
 
         return jsonify({
             '_id': str(schedule.id),
             'device': str(schedule.device.id),
             'startDate': schedule.startDate,
+            'endDate': schedule.endDate,
             'powerOnTime': schedule.powerOnTime,
             'powerOffTime': schedule.powerOffTime,
             'recurrence': schedule.recurrence,
+            'consumptionPerHour': schedule.consumptionPerHour,  # ADD
         }), 200
     except ValidationError:
         return jsonify({'error': 'Invalid device ID'}), 400
@@ -45,6 +47,9 @@ def create_schedule():
         existing = Schedule.objects(device=device).first()
         if existing is not None:
             return jsonify({'error': 'Schedule already exists for this device, use PUT to update'}), 400
+
+        if not data.get('endDate'):  # ADD — treat "" or missing as no end date
+            data['endDate'] = None
 
         schedule = Schedule(device=device, **data)
         schedule.save()
@@ -71,6 +76,10 @@ def update_schedule(device_id):
         data = request.get_json()
         data.pop('device', None)
         data.pop('_id', None)
+
+        if not data.get('endDate'):  # ADD — treat "" or missing as no end date
+            data['endDate'] = None
+
         schedule.update(**data)
         schedule.reload()
 
@@ -80,7 +89,6 @@ def update_schedule(device_id):
     except Exception as e:
         print(e)
         return jsonify({'error': str(e)}), 500
-
 
 @app.route('/schedule/<device_id>', methods=['DELETE'])
 def delete_schedule(device_id):

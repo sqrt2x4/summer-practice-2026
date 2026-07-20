@@ -29,7 +29,7 @@ class Device(Document):
     count = IntField(required=False, default=1)  # câte dispozitive de acest tip
     consumptionPerHour = FloatField(required=False)  # kWh per hour
     midCycle = BooleanField(default=False)  # True while device is powered off mid-schedule
-
+    lastPowerOffAt = DateTimeField(required=False)
 
 class DailySaving(EmbeddedDocument):
     subId = ObjectIdField(required=True, default=lambda: ObjectId())
@@ -44,6 +44,8 @@ class Saving(Document):
 class Schedule(Document):
     device = ReferenceField(Device, required=True, unique=True)
     startDate = StringField(required=True)       # "2026-07-14" — matches your mockup's "Start date"
+    endDate = StringField(required=False) 
     powerOnTime = StringField(required=True)      # "HH:MM"
     powerOffTime = StringField(required=True)     # "HH:MM"
     recurrence = StringField(required=True, choices=['workdays', 'weekends', 'everyday'])
+    consumptionPerHour = FloatField(required=True)  # kWh/hour while device is running
