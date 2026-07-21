@@ -1,16 +1,12 @@
 import configparser
 import os
-from functools import wraps
 
-from bcrypt import hashpw # type: ignore
 from Application import app
-from flask import jsonify, make_response, request # type: ignore
-import jwt # type: ignore
+from flask import jsonify, request
+from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity
+import bcrypt
 
 from Application.database.models import User
-from datetime import datetime, timedelta
-from flask_jwt_extended import JWTManager, create_access_token # type: ignore
-import bcrypt # type: ignore
 from Application.scripts.utils import insert_user
 
 secret = configparser.ConfigParser()
@@ -18,35 +14,7 @@ config_path = os.path.join(os.path.dirname(__file__), '..', 'scripts', 'config.i
 secret.read(config_path)
 
 app.config['JWT_SECRET_KEY'] = secret['db']['SECRET_KEY']
-app.config['SECRET_KEY'] = secret['db']['SECRET_KEY']
-jwt = JWTManager(app)
-
-# decorator for verifying the JWT
-def token_required(f):
-    @wraps(f)
-    def decorated(*args, **kwargs):
-        token = None
-        # jwt is passed in the request header
-        if 'x-access-token' in request.headers:
-            token = request.headers['x-access-token']
-        # return 401 if token is not passed
-        if not token:
-            return jsonify({'message' : 'Token is missing !!'}), 401
-  
-        try:
-            # decoding the payload to fetch the stored details
-            data = jwt.decode(token, app.config['SECRET_KEY'],algorithms=["HS256", "RS256"], options={"verify_signature": False})
-            current_user = User.objects.get(username = data['unique_name'])
-         
-        except Exception as e:
-            print(e)
-            return jsonify({
-                'message' : 'Token is invalid !!'
-            }), 401
-        # returns the current logged in users contex to the routes
-        return  f(current_user, *args, **kwargs)
-  
-    return decorated
+jwt_manager = JWTManager(app)  # renamed — no longer shadows anything
 
 
 @app.route('/login', methods=['POST'])
@@ -60,7 +28,7 @@ def login():
         access_token = create_access_token(identity=str(username))
         return {
             'access_token': access_token,
-            'message': 'Login Successfull',
+            'message': 'Login Successful',
             'loggedinUser': username,
             'name': user.name or username,
             'role': user.role,
@@ -68,7 +36,7 @@ def login():
         }
     else:
         return {'message': 'Invalid credentials'}, 401
-    
+
 
 @app.route('/register', methods=['POST'])
 def register():
@@ -90,5 +58,20 @@ def register():
     }
     action = insert_user(user)
     if 'error' not in action:
-        return {"message": "User succesfully added"}
+        return {"message": "User successfully added"}
     return action
+
+
+@app.route('/me', methods=['GET'])
+@jwt_required()
+def me():
+    username = get_jwt_identity()
+    user = User.objects(username=username).first()
+    if user is None:
+        return jsonify({'error': 'User not found'}), 404
+    return jsonify({
+        'username': user.username,
+        'name': user.name,
+        'role': user.role,
+        'group': user.group,
+    }), 200

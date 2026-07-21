@@ -4,6 +4,7 @@ import pymongo # type: ignore
 import os
 from flask import jsonify # type: ignore
 from ..database.models import User
+from flask_jwt_extended import jwt_required
 
 # from backend.Application.routes.auth import token_required
 
@@ -15,6 +16,7 @@ mydb = client.energysaving
 
 
 @app.route('/users', methods=['GET'])
+@jwt_required()
 def get_users():
     try:
         users = User.objects().to_json()

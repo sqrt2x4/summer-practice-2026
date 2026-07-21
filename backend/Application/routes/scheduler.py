@@ -2,9 +2,10 @@ from Application import app
 from flask import jsonify, request
 from mongoengine import ValidationError
 from ..database.models import Device, Schedule
-
+from flask_jwt_extended import jwt_required 
 
 @app.route('/schedule/<device_id>', methods=['GET'])
+@jwt_required()
 def get_schedule(device_id):
     try:
         device = Device.objects(id=device_id).first()
@@ -33,6 +34,7 @@ def get_schedule(device_id):
 
 
 @app.route('/schedule', methods=['POST'])
+@jwt_required()
 def create_schedule():
     try:
         data = request.get_json()
@@ -63,6 +65,7 @@ def create_schedule():
 
 
 @app.route('/schedule/<device_id>', methods=['PUT'])
+@jwt_required()
 def update_schedule(device_id):
     try:
         device = Device.objects(id=device_id).first()
@@ -91,6 +94,7 @@ def update_schedule(device_id):
         return jsonify({'error': str(e)}), 500
 
 @app.route('/schedule/<device_id>', methods=['DELETE'])
+@jwt_required()
 def delete_schedule(device_id):
     try:
         device = Device.objects(id=device_id).first()

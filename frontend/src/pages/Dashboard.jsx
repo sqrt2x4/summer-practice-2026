@@ -1,4 +1,6 @@
-import { Box, Card, CardContent, Container, Grid, Typography } from "@mui/material";
+import { useState, useEffect } from "react";
+import { apiFetch } from "../utils/api";
+import { Box, Card, CardContent, CircularProgress, Container, Grid, Typography } from "@mui/material";
 import DevicesIcon from "@mui/icons-material/Devices";
 import BoltIcon from "@mui/icons-material/Bolt";
 import EnergySavingsLeafIcon from "@mui/icons-material/EnergySavingsLeaf";
@@ -13,41 +15,70 @@ import {
 } from "recharts";
 import PageHeader from "../components/PageHeader";
 
-const weeklyPowerUsage = [
-    { day: "Mon", usage: 42.5, saved: 8.2 },
-    { day: "Tue", usage: 38.1, saved: 9.5 },
-    { day: "Wed", usage: 45.3, saved: 7.8 },
-    { day: "Thu", usage: 41.0, saved: 10.1 },
-    { day: "Fri", usage: 36.7, saved: 11.4 },
-    { day: "Sat", usage: 28.4, saved: 12.6 },
-    { day: "Sun", usage: 25.9, saved: 13.2 },
-];
-
-const stats = [
-    {
-        label: "Registered Devices",
-        value: "24",
-        unit: "devices",
-        icon: <DevicesIcon sx={{ fontSize: 40 }} />,
-        color: "primary.main",
-    },
-    {
-        label: "Total Power Consumption",
-        value: "257.9",
-        unit: "kWh this week",
-        icon: <BoltIcon sx={{ fontSize: 40 }} />,
-        color: "warning.main",
-    },
-    {
-        label: "Energy Saved",
-        value: "72.8",
-        unit: "kWh this week",
-        icon: <EnergySavingsLeafIcon sx={{ fontSize: 40 }} />,
-        color: "success.main",
-    },
-];
-
 function Dashboard() {
+    const [dashboardData, setDashboardData] = useState(null);
+    const [error, setError] = useState("");
+
+    useEffect(() => {
+        const fetchSummary = async () => {
+            try {
+                const response = await apiFetch("/dashboard/summary");
+                if (!response.ok) {
+                    throw new Error(`Failed to load dashboard: ${response.status}`);
+                }
+                const data = await response.json();
+                setDashboardData(data);
+            } catch (err) {
+                setError(err.message || "Failed to load dashboard.");
+            }
+        };
+        fetchSummary();
+    }, []);
+
+    if (error) {
+        return (
+            <Container maxWidth={false} disableGutters>
+                <PageHeader title="Dashboard" breadcrumbItems={["Home", "Dashboard"]} />
+                <Typography color="error" sx={{ mt: 2 }}>{error}</Typography>
+            </Container>
+        );
+    }
+
+    if (!dashboardData) {
+        return (
+            <Container maxWidth={false} disableGutters>
+                <PageHeader title="Dashboard" breadcrumbItems={["Home", "Dashboard"]} />
+                <Box sx={{ display: "flex", justifyContent: "center", mt: 4 }}>
+                    <CircularProgress />
+                </Box>
+            </Container>
+        );
+    }
+
+    const stats = [
+        {
+            label: "Registered Devices",
+            value: dashboardData.registeredDevices,
+            unit: "devices",
+            icon: <DevicesIcon sx={{ fontSize: 40 }} />,
+            color: "primary.main",
+        },
+        {
+            label: "Total Power Consumption",
+            value: dashboardData.totalPowerConsumption,
+            unit: "kWh this week",
+            icon: <BoltIcon sx={{ fontSize: 40 }} />,
+            color: "warning.main",
+        },
+        {
+            label: "Energy Saved",
+            value: dashboardData.energySaved,
+            unit: "kWh this week",
+            icon: <EnergySavingsLeafIcon sx={{ fontSize: 40 }} />,
+            color: "success.main",
+        },
+    ];
+
     return (
         <Container maxWidth={false} disableGutters>
             <PageHeader title="Dashboard" breadcrumbItems={["Home", "Dashboard"]} />
@@ -85,7 +116,7 @@ function Dashboard() {
                     </Typography>
                     <Box sx={{ width: "100%", height: 320 }}>
                         <ResponsiveContainer>
-                            <AreaChart data={weeklyPowerUsage} margin={{ top: 8, right: 16, left: 0, bottom: 0 }}>
+                            <AreaChart data={dashboardData.weeklyPowerUsage} margin={{ top: 8, right: 16, left: 0, bottom: 0 }}>
                                 <defs>
                                     <linearGradient id="usageGradient" x1="0" y1="0" x2="0" y2="1">
                                         <stop offset="5%" stopColor="#ed6c02" stopOpacity={0.4} />
@@ -108,22 +139,8 @@ function Dashboard() {
                                         name === "usage" ? "Consumption" : "Saved",
                                     ]}
                                 />
-                                <Area
-                                    type="monotone"
-                                    dataKey="usage"
-                                    name="usage"
-                                    stroke="#ed6c02"
-                                    fill="url(#usageGradient)"
-                                    strokeWidth={2}
-                                />
-                                <Area
-                                    type="monotone"
-                                    dataKey="saved"
-                                    name="saved"
-                                    stroke="#2e7d32"
-                                    fill="url(#savedGradient)"
-                                    strokeWidth={2}
-                                />
+                                <Area type="monotone" dataKey="usage" name="usage" stroke="#ed6c02" fill="url(#usageGradient)" strokeWidth={2} />
+                                <Area type="monotone" dataKey="saved" name="saved" stroke="#2e7d32" fill="url(#savedGradient)" strokeWidth={2} />
                             </AreaChart>
                         </ResponsiveContainer>
                     </Box>

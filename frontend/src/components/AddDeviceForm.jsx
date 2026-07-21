@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { apiFetch } from "../utils/api";
 import PropTypes from "prop-types";
 import {
     Alert,
@@ -76,14 +77,28 @@ const AddDeviceForm = ({ open, onClose, onSuccess, device }) => {
         setIsSubmitting(true);
         setError("");
 
-         try {
-            const url = isEditMode
-                ? `/api/device/${device._id.$oid}`
-                : "/api/device";
+        try {
+            const url = isEditMode ? `/device/${device._id.$oid}` : "/device";
             const method = isEditMode ? "PUT" : "POST";
 
-            const {...payload } = formData;
-            const response = await fetch(url, {
+            const payload = {
+                deviceName: formData.deviceName,
+                deviceSlNo: formData.deviceSlNo,
+                deviceType: formData.deviceType,
+                hwType: formData.hwType,
+                site: formData.site,
+                group: formData.group,
+                owner: formData.owner,
+                connectivityType: formData.connectivityType,
+                ip: formData.ip,
+                port: formData.port,
+                loginUser: formData.loginUser,
+                password: formData.password,
+                readCommunity: formData.readCommunity,
+                writeCommunity: formData.writeCommunity,
+            };
+
+            const response = await apiFetch(url, {
                 method,
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(payload),
@@ -93,16 +108,16 @@ const AddDeviceForm = ({ open, onClose, onSuccess, device }) => {
                 throw new Error(`Request failed: ${response.status}`);
             }
 
-            let createdDevice = null;
+            let resultDevice = null;
             try {
-                createdDevice = await response.json();
+                resultDevice = await response.json();
             } catch {
-                createdDevice = null;
+                resultDevice = null;
             }
 
             setFormData({ ...initialFormData });
             if (onSuccess) {
-                onSuccess(createdDevice);
+                onSuccess(resultDevice);
             }
             onClose();
         } catch (error) {

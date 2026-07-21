@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import PropTypes from "prop-types";
+import { apiFetch } from "../utils/api";
 import {
     Alert,
     Box,
@@ -192,7 +193,7 @@ const ScheduleForm = ({ open, onClose, onSuccess, device }) => {
             setIsLoading(true);
             setError("");
             try {
-                const response = await fetch(`/api/schedule/${deviceId}`);
+                const response = await apiFetch(`/schedule/${deviceId}`);
                 if (!response.ok) {
                     throw new Error(`Failed to load schedule: ${response.status}`);
                 }
@@ -245,11 +246,11 @@ const ScheduleForm = ({ open, onClose, onSuccess, device }) => {
         setError("");
 
         try {
-            const url = hasExistingSchedule ? `/api/schedule/${deviceId}` : "/api/schedule";
+            const url = hasExistingSchedule ? `/schedule/${deviceId}` : "/schedule";
             const method = hasExistingSchedule ? "PUT" : "POST";
             const body = hasExistingSchedule ? formData : { ...formData, device: deviceId };
 
-            const response = await fetch(url, {
+            const response = await apiFetch(url, {
                 method,
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(body),
@@ -272,7 +273,7 @@ const ScheduleForm = ({ open, onClose, onSuccess, device }) => {
         setIsSubmitting(true);
         setError("");
         try {
-            const response = await fetch(`/api/schedule/${deviceId}`, {
+            const response = await apiFetch(`/schedule/${deviceId}`, {
                 method: "DELETE",
             });
             if (!response.ok) {

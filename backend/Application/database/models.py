@@ -30,6 +30,7 @@ class Device(Document):
     consumptionPerHour = FloatField(required=False)  # kWh per hour
     midCycle = BooleanField(default=False)  # True while device is powered off mid-schedule
     lastPowerOffAt = DateTimeField(required=False)
+    lastPowerOnAt = DateTimeField(required=False)
 
 class DailySaving(EmbeddedDocument):
     subId = ObjectIdField(required=True, default=lambda: ObjectId())
@@ -49,3 +50,15 @@ class Schedule(Document):
     powerOffTime = StringField(required=True)     # "HH:MM"
     recurrence = StringField(required=True, choices=['workdays', 'weekends', 'everyday'])
     consumptionPerHour = FloatField(required=True)  # kWh/hour while device is running
+
+
+class DailyUsage(EmbeddedDocument):
+    subId = ObjectIdField(required=True, default=lambda: ObjectId())
+    date = StringField(required=True)        # "YYYY-MM-DD"
+    hoursOn = FloatField(required=True)
+    energyUsed = FloatField(required=True)    # kWh consumed
+
+
+class Usage(Document):
+    deviceName = StringField(required=True, unique=True)
+    log = EmbeddedDocumentListField(DailyUsage)

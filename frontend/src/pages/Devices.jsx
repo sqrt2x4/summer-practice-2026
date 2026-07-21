@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
+import { apiFetch } from "../utils/api";
 import {
     MenuItem,
     Dialog,
@@ -32,7 +33,7 @@ const DeviceTable = () => {
 
     const fetchDevices = async () => {
         try {
-            const response = await fetch("/api/devices");
+            const response = await apiFetch("/devices");
             if (!response.ok) {
                 throw new Error(`Failed to fetch devices: ${response.status}`);
             }
@@ -78,7 +79,7 @@ const DeviceTable = () => {
         if (!deviceToRemove) return;
         setIsDeleting(true);
         try {
-            const response = await fetch(`api/device/${deviceToRemove._id.$oid}`, {
+            const response = await apiFetch(`/device/${deviceToRemove._id.$oid}`, {
                 method: "DELETE",
             });
             if (!response.ok) {

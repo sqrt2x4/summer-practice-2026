@@ -2,9 +2,11 @@ from Application import app
 from mongoengine import ValidationError # type: ignore
 from flask import jsonify, request # type: ignore
 from ..database.models import Device
+from flask_jwt_extended import jwt_required 
 
 
 @app.route('/devices', methods=['GET'])
+@jwt_required()
 def get_devices():
     try:
         devices = Device.objects().to_json()
@@ -13,6 +15,7 @@ def get_devices():
         return jsonify({'error': str(e)}), 500
 
 @app.route('/device', methods=['POST'])
+@jwt_required()
 def add_device():
     try:
         device_data = request.get_json()
@@ -24,6 +27,7 @@ def add_device():
         return jsonify({'error': str(e)}), 400
 
 @app.route('/device/<device_id>', methods=['PUT'])
+@jwt_required()
 def update_device(device_id):
     try:
         device = Device.objects(id=device_id).first()
@@ -43,6 +47,7 @@ def update_device(device_id):
         return jsonify({'error': str(e)}), 400
 
 @app.route('/device/<device_id>', methods=['DELETE'])
+@jwt_required()
 def delete_device(device_id):
     try:
         device = Device.objects(id=device_id).first()
